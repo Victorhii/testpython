@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Process Image</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        #uploadSection {
+            width: 80%;
+            max-width: 600px;
+            height: 400px;
+            margin: 0 auto;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #uploadedImage {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+
+        #spinner {
+            display: none;
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        input[type="file"] {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload and Detect Cats/Dogs in Your Image</h1>
+    
+    <!-- Image upload and display section -->
+    <div id="uploadSection">
+        <img id="uploadedImage" src="" alt="Uploaded Image">
+        <div id="spinner"></div>
+    </div>
+
+    <input type="file" id="imageInput" accept="image/*">
+
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function() {
+            const fileInput = document.getElementById('imageInput');
+            const image = document.getElementById('uploadedImage');
+            const spinner = document.getElementById('spinner');
+
+            // Ensure a file is selected
+            if (!fileInput.files[0]) {
+                return;
+            }
+
+            // Show the uploaded image immediately
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                image.src = e.target.result;
+                image.style.display = 'block';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+
+            // Show spinner while processing
+            spinner.style.display = 'block';
+            image.style.display = 'none';
+
+            // Create FormData to send the image to Flask backend for processing
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            // Send the image to the Flask backend for processing
+            fetch('/process-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())  // Get the processed image as a blob
+            .then(blob => {
+                const imgURL = URL.createObjectURL(blob);
+                image.src = imgURL;
+                image.style.display = 'block';
+                spinner.style.display = 'none';  // Hide spinner once processing is complete
+            })
+            .catch(error => {
+                console.error('Error processing image:', error);
+                spinner.style.display = 'none';  // Hide spinner if error occurs
+            });
+        });
+    </script>
+
+</body>
+</html>
