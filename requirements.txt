@@ -1,0 +1,6 @@
+Flask==2.2.3
+Werkzeug==2.2.3
+opencv-python==4.8.0.76
+ultralytics==8.0.120
+pillow==10.0.1
+gunicorn==21.2.0
